@@ -59,6 +59,8 @@ public class PanoramaImageView extends ImageView {
 
     private GestureDetector mGestureDetector;
 
+    private boolean mIsGyroscopeEnable = false;
+
     public PanoramaImageView(Context context) {
         this(context, null);
     }
@@ -120,6 +122,7 @@ public class PanoramaImageView extends ImageView {
     }
 
     public void setGyroscopeObserver(GyroscopeObserver observer) {
+        mIsGyroscopeEnable = observer != null;
         if (observer != null) {
             observer.addPanoramaImageView(this);
         }
@@ -162,7 +165,10 @@ public class PanoramaImageView extends ImageView {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        boolean handler = mGestureDetector.onTouchEvent(event);
+        boolean handler = false;
+        if (!mIsGyroscopeEnable) {
+            handler = mGestureDetector.onTouchEvent(event);
+        }
         return handler || super.onTouchEvent(event);
     }
 
