@@ -1,43 +1,47 @@
 package com.gjiazhe.panoramaimageview.sample;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
-import com.gjiazhe.panoramaimageview.GyroscopeObserver;
+import com.bumptech.glide.request.target.CustomViewTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.gjiazhe.panoramaimageview.PanoramaImageView;
-import com.gjiazhe.panoramaimageview.util.DoNothingBitmapTransformation;
 
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
 public class HorizontalSampleActivity extends AppCompatActivity {
-
-    private GyroscopeObserver gyroscopeObserver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_horizontal_sample);
 
-        gyroscopeObserver = new GyroscopeObserver();
+        final PanoramaImageView panoramaImageView = findViewById(R.id.panorama_image_view);
 
-        PanoramaImageView panoramaImageView = findViewById(R.id.panorama_image_view);
-        panoramaImageView.setGyroscopeObserver(gyroscopeObserver);
         Glide.with(this)
-             .setDefaultRequestOptions(RequestOptions.bitmapTransform(new DoNothingBitmapTransformation()))
-             .load(Uri.parse("https://cdn.pixabay.com/photo/2018/03/27/17/23/the-beach-3266660_1280.jpg"))
-             .into(panoramaImageView);
-    }
+             .asBitmap()
+             .load(Uri.parse("https://images.pexels.com/photos/356830/pexels-photo-356830.jpeg?cs=srgb&dl=architecture-bay-bridge-356830.jpg&fm=jpg"))
+             .into(new CustomViewTarget<PanoramaImageView, Bitmap>(panoramaImageView) {
+                 @Override
+                 public void onLoadFailed(@Nullable Drawable errorDrawable) {
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        gyroscopeObserver.register(this);
-    }
+                 }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        gyroscopeObserver.unregister();
+                 @Override
+                 public void onResourceReady(@NonNull Bitmap resource,
+                                             @Nullable Transition<? super Bitmap> transition) {
+                     panoramaImageView.setImageBitmap(resource);
+                 }
+
+
+                 @Override
+                 protected void onResourceCleared(@Nullable Drawable placeholder) {
+
+                 }
+             });
     }
 }

@@ -18,7 +18,7 @@ public class VerticalSampleActivity extends AppCompatActivity {
         gyroscopeObserver = new GyroscopeObserver();
 
         PanoramaImageView panoramaImageView = (PanoramaImageView) findViewById(R.id.panorama_image_view);
-        panoramaImageView.setGyroscopeObserver(gyroscopeObserver);
+        //panoramaImageView.setGyroscopeObserver(gyroscopeObserver);
     }
 
     @Override
