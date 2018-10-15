@@ -9,8 +9,8 @@ import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.view.ViewConfiguration;
 import android.widget.ImageView;
 
 /**
@@ -56,7 +56,9 @@ public class PanoramaImageView extends ImageView {
     // Observe scroll state
     private OnPanoramaScrollListener mOnPanoramaScrollListener;
 
-    private int mTouchSlop;
+    private static final float MOVE_UNIT = 350f;//if value is bigger then move slower
+
+    private GestureDetector mGestureDetector;
 
     public PanoramaImageView(Context context) {
         this(context, null);
@@ -80,7 +82,36 @@ public class PanoramaImageView extends ImageView {
             initScrollbarPaint();
         }
 
-        mTouchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
+        mGestureDetector = new GestureDetector(context, new MyGestureListener());
+    }
+
+    private class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
+        private float mProgress = 0;
+        @Override
+        public boolean onDown(MotionEvent e) {
+            return true;
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+
+            if (mOrientation == ORIENTATION_HORIZONTAL) {
+                mProgress += distanceX / MOVE_UNIT;
+            } else if (mOrientation == ORIENTATION_VERTICAL) {
+                mProgress += distanceY / MOVE_UNIT;
+            } else {
+                return false;
+            }
+
+            Log.d(TAG, String.format("onScroll, e1:%f, e2:%f, distanceX:%f, mProgress:%f", e1.getX(), e2.getX(), distanceX, mProgress));
+
+            if (mProgress < -1) mProgress = -1f;
+            if (mProgress > 1) mProgress = 1f;
+
+            updateProgress(mProgress);
+
+            return true;
+        }
     }
 
     private void initScrollbarPaint() {
@@ -132,39 +163,8 @@ public class PanoramaImageView extends ImageView {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        boolean handler = onTouchEventInternal(event);
+        boolean handler = mGestureDetector.onTouchEvent(event);
         return handler || super.onTouchEvent(event);
-    }
-
-    float startX = 0;
-    float progress;
-
-    private boolean onTouchEventInternal(MotionEvent event) {
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                startX = event.getRawX();
-                Log.d(TAG, "ACTION_DOWN:" + startX);
-                return true;
-            case MotionEvent.ACTION_MOVE:
-                float moveX = event.getRawX();
-                if (moveX > mTouchSlop) {
-                    if (progress != 0) {
-                        progress += (moveX / startX - 1);
-                    } else {
-                        progress = moveX / startX - 1;
-                    }
-                    if (progress < -1) progress = -1f;
-                    if (progress > 1) progress = 1f;
-                    updateProgress(progress);
-                    Log.d(TAG, String.format("ACTION_MOVE, startX:%f, moveX:%f, progress:%f", startX, moveX, progress));
-                }
-                return true;
-            case MotionEvent.ACTION_UP:
-                Log.d(TAG, "ACTION_UP");
-                return true;
-        }
-
-        return false;
     }
 
     @Override
