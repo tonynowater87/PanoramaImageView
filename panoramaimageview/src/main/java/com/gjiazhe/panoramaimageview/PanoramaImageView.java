@@ -7,7 +7,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -103,7 +102,7 @@ public class PanoramaImageView extends ImageView {
                 return false;
             }
 
-            Log.d(TAG, String.format("onScroll, e1:%f, e2:%f, distanceX:%f, mProgress:%f", e1.getX(), e2.getX(), distanceX, mProgress));
+            //Log.d(TAG, String.format("onScroll, e1:%f, e2:%f, distanceX:%f, mProgress:%f", e1.getX(), e2.getX(), distanceX, mProgress));
 
             if (mProgress < -1) mProgress = -1f;
             if (mProgress > 1) mProgress = 1f;
@@ -127,7 +126,7 @@ public class PanoramaImageView extends ImageView {
     }
 
     void updateProgress(float progress) {
-        Log.d(TAG, "updateProgress:" + progress);//1 ~ 0 ~ -1
+        //Log.d(TAG, "updateProgress:" + progress);//1 ~ 0 ~ -1
 
         if (mEnablePanoramaMode) {
             mProgress = mInvertScrollDirection? -progress : progress;

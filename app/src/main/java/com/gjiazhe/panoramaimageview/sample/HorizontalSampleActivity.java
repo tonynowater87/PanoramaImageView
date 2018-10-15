@@ -1,8 +1,10 @@
 package com.gjiazhe.panoramaimageview.sample;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.gjiazhe.panoramaimageview.GyroscopeObserver;
 import com.gjiazhe.panoramaimageview.PanoramaImageView;
+import com.gjiazhe.panoramaimageview.util.DoNothingBitmapTransformation;
 
 import android.net.Uri;
 import android.os.Bundle;
@@ -22,7 +24,8 @@ public class HorizontalSampleActivity extends AppCompatActivity {
         PanoramaImageView panoramaImageView = findViewById(R.id.panorama_image_view);
         panoramaImageView.setGyroscopeObserver(gyroscopeObserver);
         Glide.with(this)
-             .load(Uri.parse("https://cdn.pixabay.com/photo/2018/05/01/07/52/landscape-3364921_1280.jpg"))
+             .setDefaultRequestOptions(RequestOptions.bitmapTransform(new DoNothingBitmapTransformation()))
+             .load(Uri.parse("https://cdn.pixabay.com/photo/2018/03/27/17/23/the-beach-3266660_1280.jpg"))
              .into(panoramaImageView);
     }
 
