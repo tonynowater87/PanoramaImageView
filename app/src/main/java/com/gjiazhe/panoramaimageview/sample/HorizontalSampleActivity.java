@@ -1,10 +1,12 @@
 package com.gjiazhe.panoramaimageview.sample;
 
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-
+import com.bumptech.glide.Glide;
 import com.gjiazhe.panoramaimageview.GyroscopeObserver;
 import com.gjiazhe.panoramaimageview.PanoramaImageView;
+
+import android.net.Uri;
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 
 public class HorizontalSampleActivity extends AppCompatActivity {
 
@@ -17,8 +19,11 @@ public class HorizontalSampleActivity extends AppCompatActivity {
 
         gyroscopeObserver = new GyroscopeObserver();
 
-        PanoramaImageView panoramaImageView = (PanoramaImageView) findViewById(R.id.panorama_image_view);
+        PanoramaImageView panoramaImageView = findViewById(R.id.panorama_image_view);
         panoramaImageView.setGyroscopeObserver(gyroscopeObserver);
+        Glide.with(this)
+             .load(Uri.parse("https://cdn.pixabay.com/photo/2018/05/01/07/52/landscape-3364921_1280.jpg"))
+             .into(panoramaImageView);
     }
 
     @Override
