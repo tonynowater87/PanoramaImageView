@@ -7,7 +7,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
+import android.view.MotionEvent;
+import android.view.ViewConfiguration;
 import android.widget.ImageView;
 
 /**
@@ -15,6 +18,8 @@ import android.widget.ImageView;
  */
 
 public class PanoramaImageView extends ImageView {
+
+    public static final String TAG = PanoramaImageView.class.getSimpleName();
 
     // Image's scroll orientation
     public final static byte ORIENTATION_NONE = -1;
@@ -51,6 +56,8 @@ public class PanoramaImageView extends ImageView {
     // Observe scroll state
     private OnPanoramaScrollListener mOnPanoramaScrollListener;
 
+    private int mTouchSlop;
+
     public PanoramaImageView(Context context) {
         this(context, null);
     }
@@ -72,6 +79,8 @@ public class PanoramaImageView extends ImageView {
         if (mEnableScrollbar) {
             initScrollbarPaint();
         }
+
+        mTouchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
     }
 
     private void initScrollbarPaint() {
@@ -87,6 +96,8 @@ public class PanoramaImageView extends ImageView {
     }
 
     void updateProgress(float progress) {
+        Log.d(TAG, "updateProgress:" + progress);//1 ~ 0 ~ -1
+
         if (mEnablePanoramaMode) {
             mProgress = mInvertScrollDirection? -progress : progress;
             invalidate();
@@ -117,6 +128,43 @@ public class PanoramaImageView extends ImageView {
                 mMaxOffset = Math.abs((mDrawableHeight * imgScale - mHeight) * 0.5f);
             }
         }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        boolean handler = onTouchEventInternal(event);
+        return handler || super.onTouchEvent(event);
+    }
+
+    float startX = 0;
+    float progress;
+
+    private boolean onTouchEventInternal(MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                startX = event.getRawX();
+                Log.d(TAG, "ACTION_DOWN:" + startX);
+                return true;
+            case MotionEvent.ACTION_MOVE:
+                float moveX = event.getRawX();
+                if (moveX > mTouchSlop) {
+                    if (progress != 0) {
+                        progress += (moveX / startX - 1);
+                    } else {
+                        progress = moveX / startX - 1;
+                    }
+                    if (progress < -1) progress = -1f;
+                    if (progress > 1) progress = 1f;
+                    updateProgress(progress);
+                    Log.d(TAG, String.format("ACTION_MOVE, startX:%f, moveX:%f, progress:%f", startX, moveX, progress));
+                }
+                return true;
+            case MotionEvent.ACTION_UP:
+                Log.d(TAG, "ACTION_UP");
+                return true;
+        }
+
+        return false;
     }
 
     @Override
