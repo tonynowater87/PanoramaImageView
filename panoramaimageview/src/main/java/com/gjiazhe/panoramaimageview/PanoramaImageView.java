@@ -6,7 +6,12 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
+import android.os.Message;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -87,7 +92,7 @@ public class PanoramaImageView extends ImageView {
     }
 
     private class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
-        private float mProgress = 0;
+
         @Override
         public boolean onDown(MotionEvent e) {
             return true;
@@ -120,7 +125,6 @@ public class PanoramaImageView extends ImageView {
         mScrollbarPaint.setColor(Color.WHITE);
         mScrollbarPaint.setStrokeWidth(dp2px(1.5f));
     }
-
     public void setGyroscopeObserver(GyroscopeObserver observer) {
         mIsGyroscopeEnable = observer != null;
         if (observer != null) {
@@ -134,6 +138,16 @@ public class PanoramaImageView extends ImageView {
         if (mEnablePanoramaMode) {
             mProgress = mInvertScrollDirection? -progress : progress;
             invalidate();
+            if (mOnPanoramaScrollListener != null) {
+                mOnPanoramaScrollListener.onScrolled(this, -mProgress);
+            }
+        }
+    }
+
+    private void updateProgressPostInvalidate(float progress) {
+        if (mEnablePanoramaMode) {
+            mProgress = mInvertScrollDirection? -progress : progress;
+            postInvalidate();
             if (mOnPanoramaScrollListener != null) {
                 mOnPanoramaScrollListener.onScrolled(this, -mProgress);
             }
@@ -300,5 +314,69 @@ public class PanoramaImageView extends ImageView {
 
     public void setOnPanoramaScrollListener(OnPanoramaScrollListener listener) {
         mOnPanoramaScrollListener = listener;
+    }
+
+    private Handler mHandler;
+
+    public void startAutoScrolling() {
+        HandlerThread handlerThread = new HandlerThread("AutoScrollingThread");
+        handlerThread.start();
+        mHandler = new Handler(handlerThread.getLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                autoUpdateProgress();
+                mHandler.sendEmptyMessageDelayed(0, 33);
+            }
+        };
+        mHandler.sendEmptyMessage(0);
+    }
+
+    public void stopAutoScrolling() {
+        if (mHandler != null) {
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    //Log.d("<DEBUG>", "stopAutoScrolling");
+                    mHandler.removeMessages(0);
+                    mHandler.getLooper().quit();
+                    mHandler = null;
+                }
+            });
+        }
+    }
+
+    private boolean mIsLeftSide = true;
+
+    private void autoUpdateProgress() {
+        float progressUnit = 0.01F;
+        float MAX = 1F;
+        float MIN = -1F;
+
+        if (mIsLeftSide) {
+            if (mProgress < MAX) {
+                mProgress += progressUnit;
+                if (mProgress > MAX) mProgress = MAX;
+            } else {
+                mIsLeftSide = false;
+            }
+        }
+
+        if (!mIsLeftSide) {
+            if (mProgress > MIN) {
+                mProgress -= progressUnit;
+                if (mProgress < MIN) mProgress = MIN;
+            } else {
+                mIsLeftSide = true;
+            }
+        }
+
+        updateProgressPostInvalidate(mProgress);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        stopAutoScrolling();
     }
 }
